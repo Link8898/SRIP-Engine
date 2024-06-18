@@ -34,14 +34,15 @@ body {
 }
 
 #game {
-    display: none;
     position: fixed;
-    width: 100dvw;
-    height: 100dvh;
+    width: 0dvw;
+    height: 0dvh;
+    align-self: center;
+    align-items: center;
     background-image: url("Assets/Images/GameBackground.png");
     background-repeat: no-repeat;
     background-size: 100% 100%;
-    border: 2px solid var(--borderColor);
+    transition: 0.2s;
 }
 
 #project {
@@ -94,7 +95,8 @@ body {
     display: flex;
     flex-direction: column;
     flex-grow: 0;
-    padding: 5%;
+    padding-left: 5%;
+    padding-right: 5%;
     opacity: 0%;
     width: 0%;
     margin-left: auto;
@@ -107,7 +109,20 @@ body {
 .componentHeader {
     font-size: 150%;
     align-self: center;
-    margin: 5%;
+    text-align: center;
+    border: 2px solid var(--backgroundColor);
+    border-radius: 20px;
+    padding: 5%;
+    margin-top: 5%;
+    margin-bottom: 5%;
+    overflow: hidden;
+    cursor: pointer;
+}
+.componentBody {
+    display: grid;
+    grid-template-rows: 0fr;
+    overflow: hidden;
+    transition: 0.2s;
 }
 .componentItem {
     width: 100%;

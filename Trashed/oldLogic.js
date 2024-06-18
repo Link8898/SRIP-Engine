@@ -1,6 +1,6 @@
 class Logic {
-    #sceneEntities = []; #gameEntities = [];
-    #selectedEntity = -1;
+    // Scene collection
+    #entities = []; #sceneEntities = []; #selectedEntity = -1;
 
     // Game State
     #timestep = 16; #lastUpdate = 0; #running = false;
@@ -12,22 +12,24 @@ class Logic {
     #viewport; #camera;
 
     // Physics
-    #gravity = 0.5;
+    #gravity = 0.8;
+
+    // User input
+    #currentKey = "";
 
     // Scripting
     #transpiler = false;
-    #currentKey = "";
 
-    constructor() { // Set camera properties
-        this.#viewport = new Camera([0, 0], [scene.canvas.width, scene.canvas.height]);
-        this.#camera = new Camera([0, 0], [game.canvas.width, game.canvas.height]);
+    constructor(resolution) { // Set camera properties
+        this.#viewport = new Camera([0, 0], resolution);
+        this.#camera = new Camera([0, 0], resolution);
     }
 
     Update(timestamp) {
         if (timestamp - this.#lastUpdate < this.#timestep || !this.#running) { return; } // Early exit
         this.#lastUpdate = timestamp;
 
-        for (let entity of this.#gameEntities) {
+        for (let entity of this.#entities) {
             if (!this.#transpiler) { // Using vailla Javascript
                 if (entity.behavior.includes("function Update()")) { // Uses Update function
                     eval(entity.behavior + "\nUpdate()");
@@ -41,16 +43,21 @@ class Logic {
             }
             if (entity.gravity) { entity.velocity.y += this.#gravity; }
             entity.Relocate(); // Update position of entity
+            for (let index = this.#entities.indexOf(entity); index < this.#entities.length; index++) { // Check collisions with all other entities
+                if (this.#entities[index] != entity) { this.CheckCollision(entity, this.#entities[index]); }
+            }
         }
 
         // Reset user input
         this.#currentKey = "";
     }
 
-    UpdateMouse(x, y) { // Mouse movement
+    UpdateMouse(x, y) {
         this.#mouseX = x;
         this.#mouseY = y;
         if (!this.#running) { // Scene view
+            this.#mouseX *= (1.25); // Scale based on X factor
+            this.#mouseY *= (1.35); // Scale based on Y factor
             // Shift in relation to the scene camera
             this.#mouseX -= (-this.#viewport.position.x + this.#viewport.resolution.x / 2);
             this.#mouseY -= (-this.#viewport.position.y + this.#viewport.resolution.y / 2);
@@ -78,19 +85,13 @@ class Logic {
         }
     }
 
-    Playtest() {
-        for (let entity of this.#sceneEntities) { // Cloned instances
-            this.#gameEntities.push(entity.Clone());
-        }
-        this.#camera.position = new Vector2(0, 0);
-        this.#running = true;
-        for (let index = 0; index < this.#gameEntities.length; index++) {
-
-            let entity = this.#gameEntities[index];
-
-            // Start Method
+    Play() {
+        this.#entities = this.#sceneEntities.slice(); // Cloned instances
+        for (let index = 0; index < this.#entities.length; index++) {
+            let entity = this.#entities[index];
+            entity.LoadRenderer();
             if (!this.#transpiler) { // Using vanilla Javascript
-                if (entity.behavior.includes("function Start()")) {
+                if (entity.behavior.includes("function Start()")) { // Uses Start() function
                     eval(entity.behavior + "\nStart()");
                 } else { eval(entity.behavior); }
             }
@@ -98,17 +99,15 @@ class Logic {
                 TranspileStart(entity);
             }
         }
+        this.#camera.position = new Vector(0, 0);
+        this.#running = true;
     }
 
     Quit() {
         this.#running = false;
-        this.#gameEntities = [];
-        try { while (scene.stage.children[0]) { scene.stage.removeChild(scene.stage.children[0]); }
-        } catch { }
-        try { while (game.stage.children[0]) { game.stage.removeChild(game.stage.children[0]); }
-        } catch { }
-        for (let entity of this.#sceneEntities) {
-            entity.LoadRenderer();
+        this.#entities = [];
+        while(game.children[0]) {
+            game.removeChild(game.children[0]);
         }
     }
 
@@ -117,9 +116,11 @@ class Logic {
         this.#sceneEntities.push(new Entity(position, width, height, source, "Object" + (this.#sceneEntities.length + 1)));
     }
 
-    set currentKey(value) { this.#currentKey = value; }
-    get sceneEntities() { return this.#sceneEntities; }
-    get gameEntities() { return this.#gameEntities; }
+    set keyInput(key) { this.#currentKey = key; }
+    get entities() {
+        if (this.#running) { return this.#entities; }
+        else { return this.#sceneEntities; }
+    }
     get selectedEntity() { return this.#selectedEntity; }
     get running() { return this.#running; }
     get mouseX() { return this.#mouseX; }
@@ -128,28 +129,32 @@ class Logic {
     get camera() { return this.#camera; }
 }
 
-class Vector2 { // 2D Vectors
-    x; y;
+class Vector { // 2D Vectors
+    #x; #y;
     constructor(x = 0, y = 0) {
-        this.x = x;
-        this.y = y;
+        this.#x = x;
+        this.#y = y;
     }
     add(vector) {
-        return new Vector2(this.x + vector.x, this.y + vector.y);
+        return new Vector(this.#x + vector.x, this.#y + vector.y);
     }
     subtract(vector) {
-        return new Vector2(this.x - vector.x, this.y - vector.y);
+        return new Vector(this.#x - vector.x, this.#y - vector.y);
     }
     multiply(factor) {
-        return new Vector2(this.x * factor, this.y * factor);
+        return new Vector(this.#x * factor, this.#y * factor);
     }
-    get magnitude() { return Math.sqrt(this.x ** 2 + this.y ** 2); }
+    get x() { return this.#x; }
+    set x(value) { this.#x = value; }
+    get y() { return this.#y; }
+    set y(value) { this.#y = value; }
+    get magnitude() { return Math.sqrt(this.#x ** 2 + this.#y ** 2); }
     get normalized() {
-        return new Vector2(-this.y, this.x).unit();
+        return new Vector(-this.#y, this.#x).unit();
     }
     get unit() {
-        if (this.magnitude == 0) { return new Vector2(); }
-        return new Vector2(this.x / this.magnitude, this.y / this.magnitude);
+        if (this.magnitude == 0) { return new Vector(); }
+        return new Vector(this.#x / this.magnitude, this.#y / this.magnitude);
     }
     static dot(vector1, vector2) {
         return vector1.x * vector2.x + vector1.y * vector2.y;
@@ -162,12 +167,30 @@ class Camera {
     resolution;
 
     constructor(position, resolution) {
-        this.position = new Vector2(position[0], position[1]);
-        this.resolution = new Vector2(resolution[0], resolution[1]);
+        this.position = new Vector(position[0], position[1]);
+        this.resolution = new Vector(resolution[0], resolution[1]);
     }
 }
 
-class Entity { // Basis of every game object
+// Basis of every game object
+class Entity {
+    // Identity
+    name; tag;
+
+    // Graphics
+    renderer; source;
+    width; height;
+
+    // Physics
+    kinematic; gravity;
+    mass; elasticity;
+    position;
+    velocity;
+    acceleration;
+
+    // Scripting
+    behavior;
+
     constructor(position, width, height, source, name) {
         // Identity and transform
         this.position = position;
@@ -181,28 +204,13 @@ class Entity { // Basis of every game object
         this.gravity = false;
         this.mass = 2;
         this.elasticity = 1;
-        this.velocity = new Vector2();
-        this.acceleration = new Vector2();
+        this.velocity = new Vector();
+        this.acceleration = new Vector();
         this.tag = "Default";
-        this.color = [Random(0, 255), Random(0, 255), Random(0, 255)];
         this.behavior = "function Start() {\n\n}\n\nfunction Update() {\n\n}\n\nfunction KeyPress(key) {\n\n}";
 
         // Renderer
         this.LoadRenderer();
-    }
-
-    Clone() { // Returns a deep copy
-        let clone = new Entity(this.position, this.width, this.height, this.source, this.name);
-        clone.kinematic = this.kinematic;
-        clone.gravity = this.gravity;
-        clone.mass = this.mass;
-        clone.elasticity = this.elasticity;
-        clone.velocity = this.velocity;
-        clone.acceleration = this.acceleration;
-        clone.tag = this.tag;
-        clone.color = this.color;
-        clone.behavior = this.behavior;
-        return clone;
     }
 
     async LoadRenderer() {
@@ -210,9 +218,6 @@ class Entity { // Basis of every game object
         this.renderer = PIXI.Sprite.from("Assets/Sprites/" + this.source);
         this.renderer.width = this.width;
         this.renderer.height = this.height;
-        this.renderer.x = this.position.x - this.width / 2;
-        this.renderer.y = this.position.y - this.height / 2;
-        this.renderer.tint = [this.color[0] / 255, this.color[1] / 255, this.color[2] / 255];
         if (!logic.running) {
             scene.stage.addChild(this.renderer);
         }
@@ -228,13 +233,8 @@ class Entity { // Basis of every game object
     }
 
     Delete() {
-        if (logic.running) {
-            logic.gameEntities.splice(logic.entities.indexOf(this), 1);
-            game.stage.removeChild(this.renderer);
-        }
-        else {
-            logic.sceneEntities.splice(logic.entities.indexOf(this), 1);
-            scene.stage.removeChild(this.renderer);
-        }
+        logic.entities.splice(logic.entities.indexOf(this), 1);
+        if (logic.running) { game.stage.removeChild(this.renderer); }
+        else { scene.stage.removeChild(this.renderer); }
     }
 }

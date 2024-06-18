@@ -101,6 +101,9 @@
     <!-- Logic Script File -->
     <script src="logic.js"></script>
 
+    <!-- Fabric Script File -->
+    <script src="fabric.js"></script>
+
     <!-- Brython Transpiler -->
     <script src="https://cdn.jsdelivr.net/npm/brython@3.8.9/brython.min.js">
     </script>
@@ -136,6 +139,7 @@
                 background: '#1099bb'
             });
 
+            /*
             game.ticker.add((ticker) => {
                 if (logic.running) {
                     logic.Update(ticker.deltaTime);
@@ -161,6 +165,7 @@
                     catch { }
                 }
             });
+            */
         }
 
         function Playmode() { // Enter playtest mode
@@ -206,14 +211,6 @@
             }
             if (event.code == "KeyE") {
                 logic.CreateEntity(new Vector(logic.mouseX, logic.mouseY), 50, 50, "Square.png");
-            }
-            if (event.code == "KeyR") {
-                async function Dem() {
-                    await PIXI.Assets.load("Assets/Sprites/Circle.png");
-                    let ren = PIXI.Sprite.from("Assets/Sprites/Circle.png");
-                    game.stage.addChild(ren);
-                }
-                Dem();
             }
             if (event.code == "ArrowLeft" && !lArrow) { lArrow = true; ShiftViewport(); }
             if (event.code == "ArrowRight" && !rArrow) { rArrow = true; ShiftViewport(); }

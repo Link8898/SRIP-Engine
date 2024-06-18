@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SRIP</title>
+    <!-- <link rel="icon" type="image/png" href="Assets/Images/favicon.png"> -->
+    <link rel="stylesheet" href="style.css">
+    <script src="https://pixijs.download/release/pixi.min.js"></script>
+</head>
+<body>
+    <!-- Project Window -->
+    <div id="project">
+        <!-- Scene Window -->
+        <canvas id="scene"></canvas>
+        <!-- Taskbar -->
+        <div id="taskbar"></div>
+    </div>
+
+    <!-- Game Window -->
+    <canvas id="game"></canvas>
+
+    <!-- Inspector Window -->
+    <div id="inspector">
+        <div class="componentHeader" style="color: white;">Inspector</div>
+        <div id="projectSettings">
+
+        </div>
+        <div class="component">
+            <div class="componentHeader">Identity</div>
+            <div class="componentBody">
+                <div>
+                    <label for="tagInput">Name:</label>
+                    <input type="text" name="nameInput" id="nameInput" class="componentItem" />
+                    <label for="tagInput">Tag:</label>
+                    <input type="text" name="tagInput" id="tagInput" class="componentItem" />
+                </div>
+            </div>
+        </div>
+        <div class="component">
+            <div class="componentHeader">Transform</div>
+            <div class="componentBody">
+                <div>
+                    <label for="xInput">X:</label>
+                    <input type="number" min="-1000" max="1000" value="0" name="xInput" id="xInput" />
+                    <input type="range" min="-1000" max="1000" value="0" name="xSlider" id="xSlider" class="componentItem" />
+                    <label for="yInput">Y:</label>
+                    <input type="number" min="-1000" max="1000" value="0" name="yInput" id="yInput" class="componentItem" />
+                    <input type="range" min="-1000" max="1000" value="0" name="ySlider" id="ySlider" class="componentItem" />
+                    <label for="widthInput">Width:</label>
+                    <input type="number" min="0" max="1000" value="0" name="widthInput" id="widthInput" class="componentItem" />
+                    <input type="range" min="0" max="1000" value="0" name="widthSlider" id="widthSlider" class="componentItem" />
+                    <label for="heightInput">Height:</label>
+                    <input type="number" min="0" max="1000" value="0" name="heightInput" id="heightInput" class="componentItem" />
+                    <input type="range" min="0" max="1000" value="0" name="heightSlider" id="heightSlider" class="componentItem" />
+                </div>
+            </div>
+        </div>
+        <div class="component">
+            <div class="componentHeader">Graphics</div>
+            <div class="componentBody">
+                <div>
+                    <label for="rSlider">R:</label>
+                    <input type="range" min="0" max="255" value="255" name="rSlider" id="rSlider" class="componentItem" />
+                    <label for="gSlider">G:</label>
+                    <input type="range" min="0" max="255" value="255" name="gSlider" id="gSlider" class="componentItem" />
+                    <label for="bSlider">B:</label>
+                    <input type="range" min="0" max="255" value="255" name="bSlider" id="bSlider" class="componentItem" />
+                </div>
+            </div>
+        </div>
+        <div class="component">
+            <div class="componentHeader">Physics</div>
+            <div class="componentBody">
+                <div>
+                    <label for="massInput">Mass:</label>
+                    <input type="number" min="0" max="1000" value="0" name="massInput" id="massInput" class="componentItem" />
+                    <input type="range" min="0" max="1000" value="0" name="massSlider" id="massSlider" class="componentItem" />
+                    <label for="kinematicInput">Kinematic:</label>
+                    <input type="checkbox" name="kinematicInput" id="kinematicInput" class="componentItem" />
+                    <label for="gravityInput">Gravity:</label>
+                    <input type="checkbox" name="gravityInput" id="gravityInput" class="componentItem" />
+                </div>
+            </div>
+        </div>
+        <div class="component">
+            <div class="componentHeader">Behavior</div>
+            <div class="componentBody">
+                <div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Terminal Window -->
+    <div id="terminal">
+        <textarea spellcheck="false" id="scriptText"></textarea>
+        <div id="references">
+            Local Attributes (entity)
+            <ul>
+                <li></li>
+                <li style="color: white;">* name (String, Direct identifier)</li>
+                <li style="color: white;">* tag (String, Widespread identifier)</li>
+                <li style="color: white;">* position (Vector, X and Y coordinates)</li>
+                <li style="color: white;">* velocity (Vector, X and Y velocities)</li>
+                <li style="color: white;">* acceleration (Vector, X and Y accelerations)</li>
+                <li style="color: white;">* collider (Collider, Type and scale)</li>
+                <li></li>
+            </ul>
+            Global Access Variables
+            <ul>
+                <li></li>
+                <li style="color: white;">* mouseX (Float, X coordinate)</li>
+                <li style="color: white;">* mouseY (Float, Y coordinate)</li>
+                <li></li>
+            </ul>
+            Global Access Methods
+            <ul>
+                <li></li>
+                <li style="color: white;">* Random (// Arguments or return values?)</li>
+                <li style="color: white;">* AudioSource (// Later)</li>
+                <li></li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Logic Script File -->
+    <script src="logic.js"></script>
+
+    <!-- Brython Transpiler -->
+    <script src="https://cdn.jsdelivr.net/npm/brython@3.8.9/brython.min.js"></script>
+
+    <!-- Python Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/brython@3.8.9/brython_stdlib.js"></script>
+
+    <!-- Client Script File -->
+    <script src="client.js"></script>
+
+    <!-- Transpiler -->
+    <script type="text/python" id="transpiler">
+        from browser import alert, document, html, window
+        import random
+
+        def TranspileStart(entity):
+            script = entity.behavior
+            if "def Start():" in script:
+                eval(script + "\nStart()")
+
+        def TranspileUpdate(entity):
+            script = entity.behavior
+            if "def Update():" in script:
+                eval(script + "\nUpdate()")
+
+        window.TranspileStart = TranspileStart
+        window.TranspileUpdate = TranspileUpdate
+    </script>
+</body>
+</html>
