@@ -80,7 +80,8 @@ class Logic {
 
     Playtest() {
         for (let entity of this.#sceneEntities) { // Cloned instances
-            this.#gameEntities.push(entity.Clone());
+            const clone = entity.Clone();
+            this.#gameEntities.push(clone);
         }
         this.#camera.position = new Vector2(0, 0);
         this.#running = true;
@@ -114,7 +115,86 @@ class Logic {
 
     CreateEntity(position, width, height, source) {
         if (this.#running) { return; }
-        this.#sceneEntities.push(new Entity(position, width, height, source, "Object" + (this.#sceneEntities.length + 1)));
+        const entity = new Entity(position, width, height, source, "Object" + (this.#sceneEntities.length + 1));
+        this.#sceneEntities.push(entity);
+    }
+
+    async SaveProject() {
+        let projectID = window.location.href.split("/");
+        projectID = projectID[projectID.length - 1];
+    
+        let data = {};
+        let entityData = [];
+        for (let entity of this.#sceneEntities) {
+            entityData.push(entity.toJSON());
+        }
+        data["entities"] = entityData;
+
+        await fetch("/save", {
+            method: "POST", headers: { "Content-type": "application/json" },
+            body: JSON.stringify({
+                project: data,
+                projectID: projectID
+            })
+        });
+    }
+    
+    async LoadProject() {
+        let projectID = window.location.href.split("/");
+        projectID = projectID[projectID.length - 1];
+    
+        let data;
+    
+        await fetch("/load", {
+            method: "POST", headers: { "Content-type": "application/json" },
+            body: JSON.stringify({
+                projectID: projectID
+            })
+        }).then((res) => res.json()).then((res) => data = res);
+
+        try { // Clear the screen and current entities
+            while (scene.stage.children[0]) { scene.stage.removeChild(scene.stage.children[0]); }
+        } catch { }
+
+        this.#sceneEntities = [];
+        for (let entityData of data.entities) {
+            this.#sceneEntities.push(Entity.fromJSON(entityData));
+        }
+    }
+
+    async LoadAssets() {
+        let projectID = window.location.href.split("/");
+        projectID = projectID[projectID.length - 1];
+
+        let data;
+
+        await fetch("/files", {
+            method: "POST", headers: { "Content-type": "application/json" },
+            body: JSON.stringify({
+                projectID: projectID
+            })
+        }).then((res) => res.json()).then((res) => data = res);
+
+        const files = document.getElementById("files");
+        while (files.firstChild) {
+            files.removeChild(files.lastChild);
+        }
+        for (let file of data.files) {
+            let element = document.createElement("a");
+            element.classList.add("file");
+
+            element.style.backgroundImage = `url('${projectID}/file/${file}')`;
+            element.addEventListener("click", () => {
+                if (this.#selectedEntity != -1) {
+                    let entity = this.#sceneEntities[this.#selectedEntity]
+                    entity.source = file;
+                    scene.stage.removeChild(entity.renderer);
+                    entity.LoadRenderer();
+                }
+            });
+
+            files.appendChild(element);
+        }
     }
 
     set currentKey(value) { this.#currentKey = value; }
@@ -126,6 +206,7 @@ class Logic {
     get mouseY() { return this.#mouseY; }
     get viewport() { return this.#viewport; }
     get camera() { return this.#camera; }
+    get transpiler() { return this.#transpiler; }
 }
 
 class Vector2 { // 2D Vectors
@@ -185,9 +266,10 @@ class Entity { // Basis of every game object
         this.acceleration = new Vector2();
         this.tag = "Default";
         this.color = [Random(0, 255), Random(0, 255), Random(0, 255)];
-        this.behavior = "function Start() {\n\n}\n\nfunction Update() {\n\n}\n\nfunction KeyPress(key) {\n\n}";
+        if (logic.transpiler) { this.behavior = "def Start():\n\n\n\def Update():\n\n\n\nfunction KeyPress(key):\n\n"; }
+        else { this.behavior = "function Start() {\n\n}\n\nfunction Update() {\n\n}\n\nfunction KeyPress(key) {\n\n}"; }
 
-        // Renderer
+        // Render to the canvas
         this.LoadRenderer();
     }
 
@@ -205,9 +287,42 @@ class Entity { // Basis of every game object
         return clone;
     }
 
+    toJSON() {
+        let data = {};
+        data.position = this.position;
+        data.width = this.width;
+        data.height = this.height;
+        data.source = this.source;
+        data.name = this.name;
+        data.kinematic = this.kinematic;
+        data.gravity = this.gravity;
+        data.mass = this.mass;
+        data.elasticity = this.elasticity;
+        data.velocity = this.velocity;
+        data.acceleration = this.acceleration;
+        data.tag = this.tag;
+        data.color = this.color;
+        data.behavior = this.behavior;
+        return data;
+    }
+
+    static fromJSON(data) {
+        let entity = new Entity(new Vector2(data.position.x, data.position.y), data.width, data.height, data.source, data.name);
+        entity.kinematic = data.kinematic;
+        entity.gravity = data.gravity;
+        entity.mass = data.mass;
+        entity.elasticity = data.elasticity;
+        entity.velocity = new Vector2(data.velocity.x, data.velocity.y);
+        entity.acceleration = new Vector2(data.acceleration.x, data.acceleration.y);
+        entity.tag = data.tag;
+        entity.color = data.color;
+        entity.behavior = data.behavior;
+        return entity;
+    }
+
     async LoadRenderer() {
-        await PIXI.Assets.load("Assets/Sprites/" + this.source);
-        this.renderer = PIXI.Sprite.from("Assets/Sprites/" + this.source);
+        await PIXI.Assets.load("file/" + this.source);
+        this.renderer = PIXI.Sprite.from("file/" + this.source);
         this.renderer.width = this.width;
         this.renderer.height = this.height;
         this.renderer.x = this.position.x - this.width / 2;

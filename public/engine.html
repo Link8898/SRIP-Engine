@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SRIP</title>
+    <title>SRIP Engine</title>
     <!-- <link rel="icon" type="image/png" href="Assets/Images/favicon.png"> -->
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="/style.css">
     <script src="https://pixijs.download/release/pixi.min.js"></script>
 </head>
 <body>
@@ -14,7 +14,11 @@
         <!-- Scene Window -->
         <canvas id="scene"></canvas>
         <!-- Taskbar -->
-        <div id="taskbar"></div>
+        <div id="taskbar">
+            <label id="fileSelector" for="fileSelect">+</label>
+            <input type="file" id="fileSelect" name="fileSelect">
+            <div id="files"></div>
+        </div>
     </div>
 
     <!-- Game Window -->
@@ -24,7 +28,7 @@
     <div id="inspector">
         <div class="componentHeader" style="color: white;">Inspector</div>
         <div id="projectSettings">
-
+            
         </div>
         <div class="component">
             <div class="componentHeader">Identity</div>
@@ -126,7 +130,7 @@
     </div>
 
     <!-- Logic Script File -->
-    <script src="logic.js"></script>
+    <script src="/logic.js"></script>
 
     <!-- Brython Transpiler -->
     <script src="https://cdn.jsdelivr.net/npm/brython@3.8.9/brython.min.js"></script>
@@ -135,7 +139,7 @@
     <script src="https://cdn.jsdelivr.net/npm/brython@3.8.9/brython_stdlib.js"></script>
 
     <!-- Client Script File -->
-    <script src="client.js"></script>
+    <script src="/client.js"></script>
 
     <!-- Transpiler -->
     <script type="text/python" id="transpiler">

@@ -30,6 +30,8 @@ async function init() { // Initialize scene canvas and logic
     game.ticker.stop();
 
     logic = new Logic();
+    logic.LoadProject();
+    logic.LoadAssets();
 
     RenderScreen(); // Begin render loop
 }
@@ -117,6 +119,22 @@ function AudioSource(source) { // Create and add an audio element
     }, 1000, audio); // Wait one second before checking if it finished playing (Due to load times)
 }
 
+// Uploading assets to the server
+document.getElementById("fileSelect").onchange = async function(event) {
+    const formData = new FormData();
+    formData.append('file', event.target.files[0]);
+
+    let projectID = window.location.href.split("/");
+    projectID = projectID[projectID.length - 1];
+
+    await fetch(`/project/${projectID}/upload`, {
+        method: "POST",
+        body: formData
+    });
+
+    logic.LoadAssets();
+}
+
 function ComponentSetup() {
     let components = document.querySelectorAll('.component > .componentHeader');
     for (let item of components) {
@@ -130,13 +148,23 @@ function ComponentSetup() {
                     component.nextElementSibling.style.gridTemplateRows = '0fr';
                 }
             }
-        })
+        });
     }
 }
 
 // Viewport traversal inputs
 let inputs = {}; let shifting = false;
 window.addEventListener("keydown", function (event) { // Key down
+    if (event.ctrlKey && event.code === "KeyS") { // Saving the project
+        event.preventDefault();
+        logic.SaveProject();
+    }
+
+    if (event.ctrlKey && event.code === "KeyL") { // Loading the project
+        event.preventDefault();
+        logic.LoadProject();
+    }
+
     if (event.code == "Tab") { // Terminal window
         event.preventDefault();
         if (document.getElementById("terminal").style.display == "flex") {
@@ -195,12 +223,22 @@ window.onmousemove = (event) => {
 document.getElementById("scene").onmouseup = (event) => { // Left click release on scene view
     logic.UpdateMouse(event.clientX, event.clientY);
     logic.HandleClick();
+
     if (logic.selectedEntity != -1) {
         for (let element of document.getElementById("inspector").getElementsByClassName("component")) {
             element.style.opacity = "100%";
             element.style.width = "100%";
             element.style.flexGrow = "1";
         }
+
+        let fileSelector = document.getElementById("fileSelector");
+        fileSelector.style.opacity = "100%";
+        fileSelector.style.height = "100%";
+
+        let files = document.getElementById("files");
+        files.style.opacity = "100%";
+        files.style.height = "100%";
+
         let entity = logic.sceneEntities[logic.selectedEntity];
         document.getElementById("nameInput").value = entity.name;
         document.getElementById("tagInput").value = entity.tag;
@@ -226,6 +264,14 @@ document.getElementById("scene").onmouseup = (event) => { // Left click release 
             element.style.width = "0%";
             element.style.flexGrow = "0";
         }
+
+        let fileSelector = document.getElementById("fileSelector");
+        fileSelector.style.opacity = "0%";
+        fileSelector.style.height = "0%";
+
+        let files = document.getElementById("files");
+        files.style.opacity = "0%";
+        files.style.height = "0%";
     }
 }
 document.getElementById("scene").oncontextmenu = (event) => { // Right click

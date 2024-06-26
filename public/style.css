@@ -1,10 +1,10 @@
 * {
     /* CSS Variables */
-    --backgroundColor: rgb(80, 80, 80);
-    --borderColor: rgb(255 148 70);
+    --primary: rgb(80, 80, 80);
+    --secondary: rgb(255 148 70);
+    --highlight: rgb(0, 255, 240);
     --fontColor: rgb(0, 0, 0);
     --windowColor: rgb(42, 75, 87);
-    --componentColor: rgb(255 148 70);
     --terminalColor: rgb(25, 45, 50);
     /*
         --backgroundColor: rgb(80, 80, 80);
@@ -25,7 +25,7 @@
 }
 
 body {
-    background-color: var(--backgroundColor);
+    background-color: var(--primary);
     background-size: 100% 100%;
     width: 100dvw;
     height: 100dvh;
@@ -51,7 +51,7 @@ body {
     margin-right: auto;
     height: 100%;
     width: auto;
-    background-color: var(--backgroundColor);
+    background-color: var(--primary);
 }
 #scene {
     width: 100%;
@@ -59,16 +59,59 @@ body {
     background-image: url("Assets/Images/SceneBackground.png");
     background-repeat: no-repeat;
     background-size: 100% 100%;
-    border: 5px solid var(--borderColor);
+    border: 2px solid var(--highlight);
 }
 #taskbar {
     display: flex;
     flex-direction: row;
     bottom: 0;
-    width: 80dvw;
+    width: 100%;
     height: 25%;
-    border-top: 2px solid var(--borderColor);
+    justify-content: left;
     background-color: var(--windowColor);
+    border-right: 2px solid var(--highlight);
+}
+input[type="file"] {
+    display: none;
+}
+#fileSelector {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: auto;
+    width: 15%;
+    height: 0%;
+    opacity: 0%;
+    transition: 0.2s;
+    font-size: 500%;
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
+    background-color: var(--secondary);
+    box-shadow: rgba(0, 0, 0, 0.5) 0px -8px 10px;
+}
+#files {
+    display: inline-grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+    grid-template-rows: auto;
+    margin-top: auto;
+    width: 85%;
+    height: 0%;
+    opacity: 0%;
+    transition: 0.2s;
+}
+.file {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 500%;
+    margin-left: 5%;
+    margin-top: 5%;
+    border-radius: 20px;
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
+    background-color: var(--secondary);
+    border: 10px solid var(--secondary);
+    box-shadow: rgba(0, 0, 0, 0.5) 0px -8px 10px;
 }
 
 #inspector {
@@ -77,9 +120,6 @@ body {
     right: 0;
     width: 20dvw;
     height: 100%;
-    border-top-left-radius: 20px;
-    border-bottom-left-radius: 20px;
-    border-left: 2px solid var(--borderColor);
     background-color: var(--windowColor);
 }
 #projectSettings {
@@ -103,14 +143,14 @@ body {
     box-shadow: rgba(0, 0, 0, 0.5) 0px -8px 10px;
     border-top-left-radius: 20px;
     border-bottom-left-radius: 20px;
-    background-color: var(--componentColor);
+    background-color: var(--secondary);
     transition: 0.2s;
 }
 .componentHeader {
     font-size: 150%;
     align-self: center;
     text-align: center;
-    border: 2px solid var(--backgroundColor);
+    border: 2px solid var(--primary);
     border-radius: 20px;
     padding: 5%;
     margin-top: 5%;
@@ -136,7 +176,7 @@ body {
     height: 80dvh;
     align-self: center;
     padding: 2%;
-    border: 2px solid var(--borderColor);
+    border: 2px solid var(--secondary);
     border-radius: 50px;
     background-color: var(--terminalColor);
     box-shadow: rgba(0, 0, 0, 0.5) 10px 10px 10px;
@@ -147,7 +187,7 @@ body {
     padding: 2%;
     color: white;
     font-size: 100%;
-    border: 2px solid var(--borderColor);
+    border: 2px solid var(--secondary);
     border-radius: 30px;
     background-color: black;
     resize: none;
@@ -155,7 +195,7 @@ body {
 #references {
     width: 30%;
     padding: 2%;
-    border: 2px solid var(--borderColor);
+    border: 2px solid var(--secondary);
     border-radius: 30px;
     color: white;
     background-color: black;

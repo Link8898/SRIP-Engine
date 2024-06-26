@@ -4,8 +4,8 @@ function Start() {
 
 function Update() {
     logic.camera.position = logic.camera.position.add(entity.position.subtract(logic.camera.position).multiply(0.05));
-    if (entity.position.y > 60) {
-        entity.position.y = 60;
+    if (entity.position.y > 0) {
+        entity.position.y = 0;
         entity.velocity.y = 0;
     }
 }
